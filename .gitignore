@@ -50,3 +50,10 @@ frontend-react/dist/
 .DS_Store
 Thumbs.db
 *.log
+
+# Additional database and credential protection
+*.db
+*.sqlite
+*.sqlite3
+*.pem
+*.key
