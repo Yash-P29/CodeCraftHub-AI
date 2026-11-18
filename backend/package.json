@@ -1,0 +1,31 @@
+{
+  "name": "codecraft-hub-backend",
+  "version": "1.0.0",
+  "description": "CodeCraftHub: Learning Management Platform REST API Backend with JSON Persistence",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node tests/api.test.js && node tests/database.test.js && node tests/ai.test.js",
+    "test:courses": "node tests/api.test.js",
+    "test:db": "node tests/database.test.js",
+    "test:ai": "node tests/ai.test.js",
+    "build:frontend": "cd ../frontend-react && npm run build",
+    "start:ai": "cd ai-service && python app.py"
+  },
+  "keywords": [
+    "coursera",
+    "ibm-full-stack",
+    "codecrafthub",
+    "learning-management-system",
+    "rest-api",
+    "express"
+  ],
+  "author": "Yash Patil",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "sqlite3": "^6.0.1"
+  }
+}
