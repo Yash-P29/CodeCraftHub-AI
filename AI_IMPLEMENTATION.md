@@ -1,136 +1,74 @@
-# CodeCraft AI: Real Generative AI Implementation Architecture
+# CodeCraftHub AI: Intelligent Microservice Architecture & Gemini Integration
 
-**Platform**: CodeCraftHub AI — Intelligent Learning Management Platform  
-**Certification**: IBM Full Stack Software Developer Professional Certificate (Coursera)  
-**Author**: Yash Patil (TY AIDS, Vishwakarma Institute of Technology, Pune)  
-**AI Engine**: Google Gemini API (`gemini-3.5-flash-lite` / `gemini-3.8-flash`)  
-**Microservice**: Python (Flask, `requests`, `python-dotenv`)  
-**Main Backend**: Node.js & Express REST API  
-**Persistent Storage**: Structured JSON (`backend/data/courses.json`)  
+**Author**: Yash Patil  
+**Institution**: Vishwakarma Institute of Technology (VIT), Pune &bull; TY AIDS  
+**Course**: IBM Full Stack Software Developer Professional Certificate Capstone  
+**Version**: 2.0.0 (Consolidated Full-Stack AI Release)  
 
 ---
 
-## 1. Executive Architecture Overview
+## 1. Architectural Vision
 
-CodeCraft AI demonstrates an enterprise, decoupled full-stack architecture that combines modern web standards with real Generative AI inference:
+**CodeCraftHub AI** combines a modern React 19 single-page application with a high-throughput Node.js/Express REST backend, an SQLite relational database, and a decoupled Python/Flask microservice orchestrating live LLM inference through Google Gemini.
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        Frontend Single-Page App                        │
-│   • Courses Dashboard (Grid & Table views, CRUD modals, filters)       │
-│   • AI Learning Assistant (Interactive chat with suggested prompts)    │
-│   • Personalized Study Planner (Custom roadmaps & milestones)          │
-│   • Course-Aware AI Tutor (Context-grounded curriculum Q&A)            │
-│   • Intelligent Recommendation Engine (Career matching & pathways)     │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │ HTTP / JSON
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                      Node.js / Express Backend (Port 5000)             │
-│   • Course CRUD Controllers & Route Handlers                           │
-│   • Persistent JSON Storage Engine (`backend/data/courses.json`)       │
-│   • AI Proxy Controller (`aiController.js` & `aiRoutes.js`)            │
-│   • Automatic Context Injection & Request Validation                   │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │ Internal HTTP (Port 5001)
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                   Python / Flask AI Microservice (Port 5001)           │
-│   • Environment & Secret Management (`config.py` loads `.env`)        │
-│   • Context Retriever & Keyword Ranker (`context_retriever.py`)        │
-│   • Structured Educational Prompt Templates (`prompt_templates.py`)    │
-│   • Resilient Gemini Inference Service (`gemini_service.py`)           │
-│   • In-Memory Rate Limiting & Input Sanitization                       │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │ HTTPS (IPv4 Direct REST API)
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                         Google Gemini API                              │
-│   • Model: gemini-3.5-flash-lite (with fallback to gemini-3.8-flash)   │
-│   • Temperature: 0.4 | Max Tokens: 1500 | Top-P: 0.95                  │
-└────────────────────────────────────────────────────────────────────────┘
+React 19 Frontend (SPA)
+       │ (REST / JSON)
+       ▼
+Node.js Express Backend (Port 5000)
+ ├── Course Catalog (data/courses.json)
+ ├── Relational Store (data/codecraft.db via SQLite3)
+ └── AI Reverse Proxy (/api/ai/*)
+       │ (Internal HTTP)
+       ▼
+Python Flask AI Microservice (Port 5001)
+ ├── Security & Secret Isolation (.env, key masking)
+ ├── Keyword Context Grounding (context_retriever.py)
+ └── Resilient Model Invocation (gemini_service.py)
+       │ (HTTPS REST)
+       ▼
+Google Gemini API (gemini-3.5-flash-lite)
 ```
 
 ---
 
-## 2. Four Integrated Generative AI Features
+## 2. The Four Generative AI Capabilities
 
 ### Feature 1: AI Learning Assistant (`POST /api/ai/chat`)
-- **Purpose**: Provides computer science students and engineers with conversational technical guidance.
-- **Implementation**: Accepts student questions along with conversational history (`history: [{role, content}]`).
-- **Prompt Engineering**: Uses `LEARNING_ASSISTANT_SYSTEM` to format responses with clear analogies, bullet points, markdown code blocks, and follow-up comprehension checks.
-- **Suggested Prompts**: Built-in chips for React hooks, REST vs. GraphQL, Docker internals, and MVC architecture.
+- **System Prompt**: Senior software engineering mentor persona.
+- **Capabilities**: Conceptual code breakdowns, trade-off comparisons, interactive follow-ups.
+- **Persistence**: Logged to SQLite `ai_conversations` table linked to user sessions.
 
 ### Feature 2: Personalized Study Plan Generator (`POST /api/ai/study-plan`)
-- **Purpose**: Generates custom, milestone-based learning roadmaps tailored to the student's constraints.
-- **Inputs**:
-  - `subject`: Targeted technology or domain.
-  - `skillLevel`: `Beginner`, `Intermediate`, or `Advanced`.
-  - `goal`: Concrete capstone or practical deliverable.
-  - `studyTime`: Daily time budget (e.g. `2 hours per day`).
-  - `duration`: Total timeline (e.g. `30 Days`, `14 Days`).
-- **Output**: Multi-phase markdown roadmap detailing weekly milestones, core concepts, hands-on lab exercises, deliverables, and common pitfalls to avoid.
+- **System Prompt**: Academic curriculum designer.
+- **Inputs**: Target subject, current skill level, primary objective, daily study hours, timeline.
+- **Output**: Multi-phase study roadmap with weekly targets, hands-on lab projects, and deliverables.
+- **Persistence**: Logged to SQLite `study_plans` table.
 
 ### Feature 3: Course-Aware AI Tutor (`POST /api/ai/course-tutor`)
-- **Purpose**: Answers curriculum, syllabus, and prerequisite inquiries strictly grounded in CodeCraftHub’s active courses.
-- **Grounding Strategy**:
-  - Node.js fetches active courses from `data/courses.json`.
-  - Python `ContextRetriever` ranks courses using keyword frequency matching across title, category, description, and instructor.
-  - The model prompt is injected with real course metadata:
-    ```text
-    Course #1 [ID: CRS-101]:
-      - Title: Full-Stack Web Development with React and Node.js
-      - Instructor: Dr. Sarah Jenkins
-      ...
-    ```
-- **Hallucination Guard**: The system prompt strictly prohibits inventing fictional course IDs or instructors. If a requested topic is not in the catalog, it explicitly states this fact while providing foundational academic advice.
+- **System Prompt**: Grounded catalog specialist with strict anti-hallucination guardrails.
+- **Mechanism**: The Node.js backend retrieves courses from `data/courses.json`. Python's `ContextRetriever` ranks courses using keyword overlap. Only verified course records are injected into the context.
 
 ### Feature 4: Intelligent Course Recommendation Engine (`POST /api/ai/recommendations`)
-- **Purpose**: Matches student career aspirations to real course offerings.
-- **Inputs**: Technical interests, current skills, and target career direction (with quick-presets for Full-Stack, Cloud DevOps, and Data Platform).
-- **Output**: Comprehensive narrative career pathway analysis paired with prioritized course cards linking directly to course specifications in the dashboard.
+- **System Prompt**: Career pathway advisor.
+- **Inputs**: Technical interests, existing skill foundations, career goal.
+- **Output**: Strategic sequence of relevant courses from the catalog with pedagogical rationale.
 
 ---
 
-## 3. Security, Secret Management & Reliability
+## 3. Security & Operational Resilience
 
-1. **Strict Server-Side Key Isolation**:
-   - `GEMINI_API_KEY` is loaded exclusively inside the Python Flask microservice from `backend/ai-service/.env`.
-   - The frontend JavaScript never has access to the API key.
-   - All `.env` files are strictly ignored by `.gitignore`.
-   - `.env.example` contains only non-sensitive placeholders.
-2. **Secret Redaction in Logs & Error Handlers**:
-   - `GeminiService.redact_key()` intercepts error strings and replaces any occurrence of the API key with `[REDACTED_API_KEY]`.
-   - Diagnostics endpoints (`/health` and `/api/ai/health`) return masked key signatures (e.g. `AQ.A...3xtg`) rather than raw keys.
-3. **Resilience & Model Fallback Cascade**:
-   - Implements automated model fallback across `gemini-3.5-flash-lite`, `gemini-3.8-flash`, and `gemini-3.5-flash` in the event of temporary high-demand spikes (HTTP 503).
-   - Forces IPv4 connection (`urllib3.util.connection.HAS_IPV6 = False`) to prevent intermittent IPv6 packet timeouts on Wi-Fi connections.
-4. **Input Sanitization & Rate Limiting**:
-   - Restricts payload sizes to 512KB.
-   - Limits prompt lengths to 4,000 characters to prevent prompt injection or token exhaustion.
-   - In-memory rate limiting enforces a maximum of 35 requests per minute per IP.
+1. **Credential Isolation**: The Google Gemini API key resides exclusively in `backend/ai-service/.env`. It is never bundled into client JavaScript or sent over the public network.
+2. **Key Masking**: Health check responses and log messages automatically redact secret keys.
+3. **Resilient Cascading**: Primary model `gemini-3.5-flash-lite` with automatic fallbacks to `gemini-3.8-flash` and `gemini-3.5-flash`.
+4. **IPv4 Network Stability**: Socket-level enforcement prevents IPv6 route resolution timeouts on Windows workstations.
+5. **SQL Injection Defense**: All SQLite queries use parameterized placeholders (`?`).
 
 ---
 
-## 4. API Reference
+## 4. Test Verification Summary
 
-| Endpoint | Method | Proxy Route | Description |
-| :--- | :---: | :--- | :--- |
-| `/api/ai/health` | `GET` | `GET :5001/health` | Check AI microservice connectivity and model status |
-| `/api/ai/chat` | `POST` | `POST :5001/ai/chat` | Chat with AI Learning Assistant |
-| `/api/ai/study-plan` | `POST` | `POST :5001/ai/study-plan` | Generate personalized study roadmap |
-| `/api/ai/course-tutor` | `POST` | `POST :5001/ai/course-tutor` | Ask questions with course catalog context |
-| `/api/ai/recommendations` | `POST` | `POST :5001/ai/recommendations` | Generate personalized course recommendations |
-
----
-
-## 5. Verification Status
-
-| Feature | Integration Status | Live Inference Verified | Latency |
-| :--- | :---: | :---: | :---: |
-| **AI Learning Assistant** | Completed | **YES** (Google Gemini) | ~3.7s |
-| **Personalized Study Planner** | Completed | **YES** (Google Gemini) | ~5.7s |
-| **Course-Aware AI Tutor** | Completed | **YES** (Google Gemini) | ~3.1s |
-| **Intelligent Recommendations** | Completed | **YES** (Google Gemini) | ~2.9s |
-| **Backend Fallback & Recovery** | Completed | **YES** (Automated Cascade) | Instant |
-| **Rate Limiter & Validation** | Completed | **YES** (400 & 429 Guards) | Instant |
+All 21 automated integration tests pass 100%:
+- **Course CRUD Suite** (10 tests): `backend/tests/api.test.js`
+- **SQLite Database Suite** (5 tests): `backend/tests/database.test.js`
+- **Node.js AI Proxy Suite** (6 tests): `backend/tests/ai.test.js`
